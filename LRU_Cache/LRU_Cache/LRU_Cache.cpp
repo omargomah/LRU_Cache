@@ -1,183 +1,270 @@
 #include <iostream>
 using namespace std;
 template <class T>
-class singleLinkedList
+class LinkedList
 {
 	struct Node
 	{
-		T item;
-		Node* next;
+		T data;
+		Node* Next;
 	};
-	int length;
-	Node* head;
-	Node* tail;
-	void FirstNode(Node* newNode)
-	{
-		newNode->next = NULL;
-		head = tail = newNode;
-	}
-	void DeleteLastNode()
-	{
-		delete head;
-		head = tail = NULL;
-		length = 0;
-	}
+	Node* Head;
 public:
-	singleLinkedList()
+	LinkedList()
 	{
-		length = 0;
-		head = tail = NULL;
+		Head = NULL;
 	}
 	bool IsEmpty()
 	{
-		return length == 0;
+		return Head == NULL;
 	}
-	void Enqueue(T element)
+	int Count()
+	{
+		int i = 0;
+		Node* temp = Head;
+		while (temp != NULL)
+		{
+			i++;
+			temp = temp->Next;
+		}
+		return i;
+	}
+	void InsertAtFirst(T item)
 	{
 		Node* newNode = new Node;
-		newNode->item = element;
+		newNode->data = item;
+		newNode->Next = Head;;
+		Head = newNode;
+	}
+	void InsertAtLast(T item)
+	{
 		if (IsEmpty())
-			FirstNode(newNode);
-		else
 		{
-			newNode->next = head;
-			head = newNode;
-		}
-		length++;
-	}
-	void Push(T element)
-	{
-		Node* newNode = new Node;
-		newNode->item = element;
-		if (IsEmpty())
-			FirstNode(newNode);
-		else
-		{
-			newNode->next = NULL;
-			tail->next = newNode;
-			tail = newNode;
-		}
-		length++;
-	}
-	void Insert(T element, int pos)
-	{
-		if (pos < 0 || pos > length)
-			cout << "Invalid position!" << endl;
-		else if (pos == 0)
-			Enqueue(element);
-		else if (pos == length)
-			Push(element);
-		else
-		{
-			Node* temp = head;
-			for (int i = 1; i < pos; i++)
-				temp = temp->next;
-			Node* newNode = new Node;
-			newNode->item = element;
-			newNode->next = temp->next;
-			temp->next = newNode;
-			length++;
-		}
-	}
-	void Dequeue()
-	{
-		if (length == 1)
-		{
-			DeleteLastNode();
+			InsertAtFirst(item);
 			return;
 		}
-		Node* temp = head;
-		head = head->next;
-		delete temp;
-		length--;
+		Node* temp = Head, * newNode = new Node;
+		newNode->data = item;
+		newNode->Next = NULL;
+		while (temp->Next != NULL)
+			temp = temp->Next;
+		temp->Next = newNode;
 	}
-	void Pop()
+	void InsertAtAnyPosition(int pos, T item)
 	{
-		if (length == 1)
-		{
-			DeleteLastNode();
-			return;
-		}
-
-		Node* temp = head;
-		for (int i = 2; i < length; i++)
-		{
-			temp = temp->next;
-		}
-		tail = temp;
-		temp = temp->next;
-		tail->next = NULL;
-		delete temp;
-		length--;
-	}
-	void RemoveAt(int pos)
-	{
-		if (pos < 0 || pos > length)
-			cout << "Invalid position!" << endl;
+		int size = Count();
+		if (pos < 0 || pos > size)
+			cout << "the index out of range" << endl;
 		else if (pos == 0)
-			Dequeue();
-		else if (pos == length)
-			Pop();
+			InsertAtFirst(item);
+		else if (pos == size)
+			InsertAtLast(item);
 		else
 		{
-			Node* cur = head, * prev = head;
-			for (int i = 1; i < pos; i++)
-			{
-				prev = cur;
-				cur = cur->next;
-			}
-			prev->next = cur->next;
-			cur->next = NULL;
-			delete cur;
-			length--;
+			Node* temp = Head, * newNode = new Node;
+			newNode->data = item;
+			for (int i = 0; i < pos - 1; i++)
+				temp = temp->Next;
+			newNode->Next = temp->Next;
+			temp->Next = newNode;
 		}
 	}
 	void Display()
 	{
-		Node* temp = head;
+		Node* temp = Head;
 		while (temp != NULL)
 		{
-			cout << temp->item << " ";
-			temp = temp->next;
+			cout << temp->data << " ";
+			temp = temp->Next;
 		}
 		cout << endl;
 	}
-	void Clear()
+	T GetItemIfExist(T item)
 	{
-		while (!IsEmpty())
-			Dequeue();
-	}
-	void Reverse()
-	{
-		if (IsEmpty() || length == 1)
-			return;
-		Node* prev = NULL, * cur = head, * next = head->next;
-		tail = head;
-		while (next != NULL)
+		Node* temp = Head;
+		while (temp != NULL)
 		{
-			next = cur->next;
-			cur->next = prev;
-			prev = cur;
-			cur = next;
+			if (temp->data == item)
+				return temp->data;
+			temp = temp->Next;
 		}
-		head = prev;
+		return NULL;
 	}
-	int Search(T element)
+	int GetIndexOfItem(T item)
 	{
-		if (IsEmpty())
-			return -1;
-		Node* temp = head;
-		for (int i = 0; i < length; i++)
+		Node* temp = Head;
+		int pos = 0;
+		while (temp != NULL)
 		{
-			if (temp->item == element)
-				return i;
-			temp = temp->next;
+			if (temp->data == item)
+				return pos;
+			temp = temp->Next;
+			pos++;
 		}
 		return -1;
 	}
+	bool IsExist(T item)
+	{
+		Node* temp = Head;
+		while (temp != NULL)
+		{
+			if (temp->data == item)
+				return true;
+			temp = temp->Next;
+		}
+		return false;
+	}
 
+	void DeleteAtFirst()
+	{
+		if (IsEmpty())
+		{
+			cout << "the LinkedList is empty" << endl;
+			return;
+		}
+		Node* deleted = Head;
+		Head = Head->Next;
+		delete deleted;
+	}
+	void DeleteAtLast()
+	{
+		if (IsEmpty())
+		{
+			cout << "the LinkedList is empty" << endl;
+			return;
+		}
+		Node* deleted = Head, * prev = NULL;
+		while (deleted->Next != NULL)
+		{
+			prev = deleted;
+			deleted = deleted->Next;
+		}
+		if (prev == NULL)
+			DeleteAtFirst();
+		else
+		{
+			prev->Next = NULL;
+			delete deleted;
+		}
+	}
+	void DeleteAtAnyPosition(int pos)
+	{
+		int size = Count();
+		if (pos < 0 || pos >(size - 1))
+			cout << "the index out of range" << endl;
+		else if (pos == 0)
+			DeleteAtFirst();
+		else if (pos == size - 1)
+			DeleteAtLast();
+		else
+		{
+			Node* prev = Head, * deleted = NULL;
+			for (int i = 0; i < pos - 1; i++)
+				prev = prev->Next;
+			deleted = prev->Next;
+			prev->Next = deleted->Next;
+			delete deleted;
+		}
+	}
+	void Reverse()
+	{
+		if (IsEmpty())
+			return;
+		Node* prev = NULL, * cur = Head, * next = Head;
+		while (cur != NULL)
+		{
+			next = cur->Next;
+			cur->Next = prev;
+			prev = cur;
+			cur = next;
+		}
+		Head = prev;
+	}
 };
 
+template <typename K, typename V>
+class KeyValuePair 
+{
+	K key;
+	V value;
+public:
+	KeyValuePair(K key ,V value)
+	{
+		this->key = key;
+		this->value = value;
+	}
+	bool operator==(const KeyValuePair& other) const {
+		return key == other.key;
+	}
+	int GetValue()
+	{
+		return key;
+	}
+	int GetKey()
+	{
+		return key;
+	}
+	void PutValue(V value)
+	{
+		this->value = value;
+	}
+
+	
+};
+
+template <typename K, typename V>
+class HashMap 
+{
+private:
+	LinkedList<KeyValuePair<K, V>>* table;
+	int capacity;
+
+	int hashFunction(K key) {
+		return (int)key % capacity;
+	}
+
+public:
+	HashMap(int cap) {
+		capacity = cap;
+		table = new LinkedList<KeyValuePair<K, V>>[capacity];
+	}
+
+
+	void Put(K key, V value) {
+		int index = hashFunction(key);
+		KeyValuePair<K, V> kv( key, value );
+
+		KeyValuePair<K, V> SearchResult = table[index].GetItemIfExist(kv);
+		if (SearchResult != NULL) {
+			SearchResult.PutValue(value);
+			return;
+		}
+		table[index].Push(kv);
+	}
+
+	V* Get(K key) {
+		int index = hashFunction(key);
+		if(table[index] == NULL)
+			return NULL;
+		KeyValuePair<K, V> searchKey;
+		searchKey.key = key;
+		KeyValuePair<K, V> kv = table[index].GetItemIfExist(searchKey);
+		return kv; 
+	}
+
+	void Remove(K key) {
+		int index = hashFunction(key);
+		KeyValuePair<K, V> kv;
+		kv.key = key;
+		int pos = table[index].GetIndexOfItem(kv);
+		if (pos != -1) {
+			table[index].RemoveAt(pos);
+		}
+	}
+	~HashMap() {
+		delete[] table;
+	}
+};
 int main()
 {
     cout << "Hello World!\n";
