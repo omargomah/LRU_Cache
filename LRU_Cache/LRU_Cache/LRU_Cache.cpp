@@ -1,7 +1,10 @@
 #include <iostream>
+#include <thread>
+#include <chrono>
 using namespace std;
-template <class T>
-class LinkedList
+
+template <typename T>
+class SingleLinkedList
 {
 	struct Node
 	{
@@ -10,7 +13,7 @@ class LinkedList
 	};
 	Node* Head;
 public:
-	LinkedList()
+	SingleLinkedList()
 	{
 		Head = NULL;
 	}
@@ -79,47 +82,46 @@ public:
 		}
 		cout << endl;
 	}
-	T GetItemIfExist(T item)
+	T* GetItemIfExist(int Key)
 	{
 		Node* temp = Head;
 		while (temp != NULL)
 		{
-			if (*(temp->data) == *item)
-				return temp->data;
+			if (temp->data.key == Key)
+				return &(temp->data);
 			temp = temp->Next;
 		}
 		return NULL;
 	}
-	int GetIndexOfItem(T item)
+	int GetIndexOfItem(int key)
 	{
 		Node* temp = Head;
 		int pos = 0;
 		while (temp != NULL)
 		{
-			if (*(temp->data) == *item)
+			if (temp->data.key == key)
 				return pos;
 			temp = temp->Next;
 			pos++;
 		}
 		return -1;
 	}
-	bool IsExist(T item)
+	bool IsExist(int key)
 	{
 		Node* temp = Head;
 		while (temp != NULL)
 		{
-			if (*(temp->data) == *item)
+			if (temp->data.key == key)
 				return true;
 			temp = temp->Next;
 		}
 		return false;
 	}
-
 	void DeleteAtFirst()
 	{
 		if (IsEmpty())
 		{
-			cout << "the LinkedList is empty" << endl;
+			cout << "the SingleLinkedList is empty" << endl;
 			return;
 		}
 		Node* deleted = Head;
@@ -130,7 +132,7 @@ public:
 	{
 		if (IsEmpty())
 		{
-			cout << "the LinkedList is empty" << endl;
+			cout << "the SingleLinkedList is empty" << endl;
 			return;
 		}
 		Node* deleted = Head, * prev = NULL;
@@ -188,13 +190,11 @@ class KeyValuePair
 public:
 	K key;
 	V value;
+	KeyValuePair() { }
 	KeyValuePair(K key ,V value)
 	{
 		this->key = key;
 		this->value = value;
-	}
-	bool operator==(KeyValuePair other) const {
-		return key == other.key;
 	}
 };
 
@@ -202,64 +202,64 @@ template <typename K, typename V>
 class HashMap 
 {
 private:
-	LinkedList<KeyValuePair<K, V>*>* table;
+	SingleLinkedList<KeyValuePair<K, V>>* table;
 	int capacity;
-
 	int hashFunction(K key) {
 		return (int)key % capacity;
 	}
 
 public:
-	HashMap(int cap) {
+	HashMap(int cap) 
+	{
 		capacity = cap;
-		table = new LinkedList<KeyValuePair<K, V>*>[capacity];
+		table = new SingleLinkedList<KeyValuePair<K, V>>[capacity];
 	}
-
-
+	 
 	void Put(K key, V value) {
 		int index = hashFunction(key);
-		KeyValuePair<K, V>* kv  = new KeyValuePair<K,V>( key, value);
-
-		KeyValuePair<K, V>* SearchResult = table[index].GetItemIfExist(kv);
+		KeyValuePair<K, V>* SearchResult = table[index].GetItemIfExist(key);
 		if (SearchResult != NULL) {
 			SearchResult->value = value;
 			return;
 		}
+		KeyValuePair<K, V> kv( key, value);
 		table[index].InsertAtLast(kv);
 	}
 
-	V Get(K key) {
+	V Get(K key) 
+	{
 		int index = hashFunction(key);
 		if(table[index].IsEmpty())
-			return NULL;
-		KeyValuePair<K, V>* searchKey = new KeyValuePair<K,V>(key,0); 
-		KeyValuePair<K, V>* kv = table[index].GetItemIfExist(searchKey);
+			return NULL; 
+		KeyValuePair<K, V>* kv = table[index].GetItemIfExist(key);
 		return (kv != NULL) ? kv->value : NULL;
 	}
 
-	void Remove(K key) {
+	void Remove(K key) 
+	{
 		int index = hashFunction(key);
-		KeyValuePair<K, V>* kv = new KeyValuePair<K, V>(key,0);
-		kv->key = key;
-		int pos = table[index].GetIndexOfItem(kv);
-		if (pos != -1) {
+		if(table[index].IsEmpty())
+			return; 
+		int pos = table[index].GetIndexOfItem(key);
+		if (pos != -1) 
 			table[index].DeleteAtAnyPosition(pos);
-		}
-	}
-	~HashMap() {
+	}	
+
+	~HashMap() 
+	{
 		delete[] table;
 	}
 };
 
-
-class DoubleNode {
-public:
+struct DoubleNode 
+{
 	int val;
 	int key;
 	DoubleNode* next;
 	DoubleNode* prev;
 
-	DoubleNode(int val = 0, int key = 0, DoubleNode* next = nullptr, DoubleNode* prev = nullptr) {
+	DoubleNode(int val = 0, int key = 0, DoubleNode* next = NULL, DoubleNode* prev = NULL) 
+	{
 		this->val = val;
 		this->key = key;
 		this->next = next;
@@ -267,16 +267,20 @@ public:
 	}
 };
 
-class LRUCache {
+class LRUCache 
+{
 private:
 	HashMap<int, DoubleNode*> Dict;
 	DoubleNode* head, * back;
 	int cap, count;
 
-	void Track(int key) {
-		if (count > 1) {
+	void Track(int key) 
+	{
+		if (count > 1) 
+		{
 			DoubleNode* temp = Dict.Get(key);
-			if (temp == head) {
+			if (temp == head)
+			{
 				head = head->next;
 				head->prev = NULL;
 				temp->next = NULL;
@@ -284,7 +288,8 @@ private:
 				temp->prev = back;
 				back = temp;
 			}
-			else if (temp != back) {
+			else if (temp != back) 
+			{
 				temp->prev->next = temp->next;
 				temp->next->prev = temp->prev;
 				temp->prev = back;
@@ -296,17 +301,19 @@ private:
 	}
 
 public:
-	LRUCache(int capacity) :Dict(capacity)
+
+	LRUCache(int capacity) : Dict(capacity)
 	{
 		cap = capacity;
 		count = 0;
-		head = back = nullptr;
+		head = back = NULL;
 	}
 
-
-	int Get(int key) {
+	int Get(int key) 
+	{
 		DoubleNode* nodePtr = Dict.Get(key);
-		if (nodePtr != NULL) {
+		if (nodePtr != NULL) 
+		{
 			Track(key);
 			return nodePtr->val;
 		}
@@ -315,13 +322,14 @@ public:
 
 	void Put(int key, int value) {
 		DoubleNode* existingNode = Dict.Get(key);
+	 
 		if (existingNode != NULL) 
 		{
 			existingNode->val = value;
 			Track(key);
 		}
 		else 
-		{
+		{              
 			DoubleNode* node = new DoubleNode(value, key);
 			if (count == cap) 
 			{
@@ -338,10 +346,10 @@ public:
 				count--;
 			}
 
-			if (back == NULL) {
+			if (back == NULL) 
 				back = head = node;
-			}
-			else {
+			else 
+			{
 				back->next = node;
 				node->prev = back;
 				back = node;
@@ -350,8 +358,24 @@ public:
 			count++;
 		}
 	}
-
-	~LRUCache() {
+	void Display() 
+	{
+		DoubleNode* current = back;
+		cout << "[ RAM Content (Top:Back/Newest -> Bottom:Head/Oldest) ]: ";
+		if (current == NULL) 
+			cout << "Empty";
+		cout << endl;
+		while (current != NULL) 
+		{
+			cout << "[Page " << current->key << ": " << current->val << "]";
+			if (current->prev != NULL) 
+				cout << endl;
+			current = current->prev;
+		}
+		cout << endl;
+	}
+	~LRUCache() 
+	{
 		DoubleNode* current = head;
 		while (current != nullptr) {
 			DoubleNode* next = current->next;
@@ -361,83 +385,81 @@ public:
 	}
 };
 
+class VirtualMemoryManager 
+{
+	LRUCache physicalRAM;          
+	HashMap<int, int> disk;        
+	int ramCapacity;
+	int totalRequests;
+	int pageFaults;
+
+public:
+	VirtualMemoryManager(int capacity): physicalRAM(capacity), disk(200)	
+	{
+		ramCapacity = capacity;
+		totalRequests = 0;
+		pageFaults = 0;
+		for (int i = 0; i < 200; ++i)
+			disk.Put(i, i * 10);
+	}
+
+	void AccessPage(int pageId) 
+	{
+		totalRequests++;
+		cout << "\n[CPU Request]: Accessing Page " << pageId << "..." <<endl;
+		int data = physicalRAM.Get(pageId);
+
+		if (data != -1)
+			cout << ">> Result: PAGE HIT. Data: " << data << " (Fetched from RAM)" <<endl;
+		else 
+		{
+			pageFaults++;
+			cout << ">> Result: PAGE FAULT! Page " << pageId << " not in RAM." << endl;
+
+			cout << "   (Simulating custom HashMap Disk Read - 200ms) ";
+			for (int i = 0; i < 10;i++)
+			{
+				cout << ".";
+				this_thread::sleep_for(chrono::milliseconds(50));
+			}
+			cout << endl;
+			int diskData = disk.Get(pageId);
+			physicalRAM.Put(pageId, diskData);
+			cout << "Page " << pageId << " loaded into RAM." << endl;
+		}
+		DisplayStats();
+	}
+
+	void DisplayStats() 
+	{
+		double hitRate = 0;
+		if (totalRequests > 0) 
+			hitRate = ((double)(totalRequests - pageFaults) / totalRequests) * 100;
+		cout << "------------------------------------------" <<endl;
+		cout << "STATS | Total Requests: " << totalRequests << " | Faults: " << pageFaults << " | Hit Rate: " << hitRate << "%" <<endl;
+		cout << "------------------------------------------" << std::endl;
+		physicalRAM.Display();
+	}
+};
 
 int main()
 {
+	VirtualMemoryManager vmm(3);
+	cout << "<<<						 Virtual Memory Simulation						>>>" << endl;
+	int inputPage;
+	while (true) 
+	{
+		cout << "\nEnter Page ID (0-99) or -1 to quit: ";
+		cin >> inputPage;
 
-#pragma region First Test Case
-	
-	// LRUCache lruCache = new LRUCache(2);
-	//LRUCache cache(2);
-
-	//cout << "put(1, 10): "; cache.Put(1, 10);
-	//// Cache state: {1=10} (head=1, back=1)
-	//cout << "null" << endl;
-
-	//cout << "get(1): ";
-	//cout << cache.Get(1) << endl; // Returns 10
-	//// Cache state: {1=10} (head=1, back=1)
-
-	//cout << "put(2, 20): "; cache.Put(2, 20);
-	//// Cache state: {1=10, 2=20} (head=1, back=2)
-	//cout << "null" << endl;
-
-	//cout << "put(3, 30): "; cache.Put(3, 30);
-	//// Cache state: {2=20, 3=30}, Key 1 evicted (head=2, back=3)
-	//cout << "null" << endl;
-
-	//cout << "get(2): ";
-	//cout << cache.Get(2) << endl; // Returns 20
-	//// Cache state: {3=30, 2=20} (head=3, back=2)
-
-	//cout << "get(1): ";
-	//cout << cache.Get(1) << endl; // Returns -1 (not found)
-
-#pragma endregion
-
-#pragma region Second Test Case
-
-	LRUCache cache(3);
-
-	cout << "--- Starting Large Test Case ---" << endl;
-
-	// 1. Fill the cache to capacity
-	cout << "Put(1, 10), Put(2, 20), Put(3, 30)" << endl;
-	cache.Put(1, 10);
-	cache.Put(2, 20);
-	cache.Put(3, 30);
-	// State: [1, 2, 3] (3 is MRU)
-
-	// 2. Access the oldest element (1) to make it the newest
-	cout << "Get(1): " << cache.Get(1) << " (Expected: 10)" << endl;
-	// State: [2, 3, 1] (1 is now MRU)
-
-	// 3. Add a new element to trigger eviction
-	cout << "Put(4, 40) - Should evict Key 2" << endl;
-	cache.Put(4, 40);
-	// State: [3, 1, 4]
-
-	// 4. Verify Key 2 is gone
-	cout << "Get(2): " << cache.Get(2) << " (Expected: -1)" << endl;
-
-	// 5. Update an existing value (Key 3)
-	cout << "Put(3, 300) - Updates 3 and makes it MRU" << endl;
-	cache.Put(3, 300);
-	// State: [1, 4, 3]
-
-	// 6. Rapid additions to test sequential eviction
-	cout << "Put(5, 50), Put(6, 60)" << endl;
-	cache.Put(5, 50); // Evicts 1. State: [4, 3, 5]
-	cache.Put(6, 60); // Evicts 4. State: [3, 5, 6]
-
-	// 7. Final Verification
-	cout << "\n--- Final State Check ---" << endl;
-	cout << "Get(3): " << cache.Get(3) << " (Expected: 300)" << endl;
-	cout << "Get(4): " << cache.Get(4) << " (Expected: -1)" << endl;
-	cout << "Get(5): " << cache.Get(5) << " (Expected: 50)" << endl;
-	cout << "Get(6): " << cache.Get(6) << " (Expected: 60)" << endl;
-
-#pragma endregion
-
+		if (inputPage == -1)
+			break;
+		if (inputPage < 0 || inputPage > 99)
+		{
+			cout << "Invalid ID." << endl;
+			continue;
+		}
+		vmm.AccessPage(inputPage);
+	}
 
 }
