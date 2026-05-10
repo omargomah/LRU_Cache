@@ -1,7 +1,7 @@
 #include <iostream>
 #include <thread>
-#include <chrono>
 using namespace std;
+#pragma region Single Linked List Implementation
 
 template <typename T>
 class SingleLinkedList
@@ -184,6 +184,11 @@ public:
 	}
 };
 
+#pragma endregion
+
+
+#pragma region HashMap Implementation 
+
 template <typename K, typename V>
 class KeyValuePair 
 {
@@ -251,6 +256,11 @@ public:
 	}
 };
 
+#pragma endregion
+
+
+#pragma region LRU Cache Implementation
+
 struct DoubleNode 
 {
 	int val;
@@ -301,14 +311,12 @@ private:
 	}
 
 public:
-
 	LRUCache(int capacity) : Dict(capacity)
 	{
 		cap = capacity;
 		count = 0;
 		head = back = NULL;
 	}
-
 	int Get(int key) 
 	{
 		DoubleNode* nodePtr = Dict.Get(key);
@@ -319,8 +327,8 @@ public:
 		}
 		return -1;
 	}
-
-	void Put(int key, int value) {
+	void Put(int key, int value) 
+	{
 		DoubleNode* existingNode = Dict.Get(key);
 	 
 		if (existingNode != NULL) 
@@ -377,13 +385,19 @@ public:
 	~LRUCache() 
 	{
 		DoubleNode* current = head;
-		while (current != nullptr) {
+		while (current != NULL) 
+		{
 			DoubleNode* next = current->next;
 			delete current;
 			current = next;
 		}
 	}
 };
+
+#pragma endregion
+
+
+#pragma region Simulation of Virtual Memory Management using LRU Cache
 
 class VirtualMemoryManager 
 {
@@ -436,25 +450,28 @@ public:
 		if (totalRequests > 0) 
 			hitRate = ((double)(totalRequests - pageFaults) / totalRequests) * 100;
 		cout << "------------------------------------------" <<endl;
-		cout << "STATS | Total Requests: " << totalRequests << " | Faults: " << pageFaults << " | Hit Rate: " << hitRate << "%" <<endl;
+		cout << "STATS | Total Requests: " << totalRequests << " | Faults: " << pageFaults << "| Hits: "<< totalRequests - pageFaults << " | Hit Rate: " << hitRate << "%" <<endl;
 		cout << "------------------------------------------" << std::endl;
 		physicalRAM.Display();
 	}
 };
 
+#pragma endregion
+
+
 int main()
 {
 	VirtualMemoryManager vmm(3);
-	cout << "<<<						 Virtual Memory Simulation						>>>" << endl;
+	cout << "   					  Virtual Memory Simulation 					    " << endl;
 	int inputPage;
 	while (true) 
 	{
-		cout << "\nEnter Page ID (0-99) or -1 to quit: ";
+		cout << "\nEnter Page ID (0-199) or -1 to quit: ";
 		cin >> inputPage;
 
 		if (inputPage == -1)
 			break;
-		if (inputPage < 0 || inputPage > 99)
+		if (inputPage < 0 || inputPage > 199)
 		{
 			cout << "Invalid ID." << endl;
 			continue;
